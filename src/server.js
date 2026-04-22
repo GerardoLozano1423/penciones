@@ -184,6 +184,9 @@ export async function getServerlessApp() {
 
 export default async function handler(request, response) {
   const app = await getServerlessApp();
+  if (request.url === '/api/index' || request.url?.startsWith('/api/index?')) {
+    request.url = '/';
+  }
   app.server.emit('request', request, response);
 }
 
@@ -281,7 +284,7 @@ if (process.argv.includes('--init-only')) {
   process.exit(0);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (!process.env.VERCEL && process.argv[1] === fileURLToPath(import.meta.url)) {
   const { app } = await buildApp();
   const port = Number(process.env.PORT || 3000);
   const host = process.env.HOST || '0.0.0.0';
