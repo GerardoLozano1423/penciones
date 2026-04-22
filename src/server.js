@@ -70,7 +70,7 @@ export async function buildApp() {
       httpOnly: true,
       sameSite: 'lax',
       signed: false,
-      secure: process.env.NODE_ENV === 'production',
+      secure: shouldUseSecureCookie(request),
       expires: new Date(session.expiresAt)
     });
     return reply.redirect('/');
@@ -206,6 +206,17 @@ function validateRuntimeConfig() {
   if (missing.length) {
     throw new Error(`Missing required Vercel environment variables: ${missing.join(', ')}`);
   }
+}
+
+function shouldUseSecureCookie(request) {
+  if (process.env.COOKIE_SECURE === 'true') return true;
+  if (process.env.COOKIE_SECURE === 'false') return false;
+
+  const forwardedProto = request.headers['x-forwarded-proto'];
+  const proto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+  if (proto) return proto.split(',')[0].trim() === 'https';
+
+  return request.protocol === 'https';
 }
 
 function getCalculationForUser(db, id, userId) {
