@@ -12,6 +12,7 @@ import { dashboardView, detailView, editCalculationView, loginView } from './vie
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
+let serverlessAppPromise;
 
 export async function buildApp() {
   validateRuntimeConfig();
@@ -168,6 +169,22 @@ export async function buildApp() {
   });
 
   return { app, dbPath };
+}
+
+export async function getServerlessApp() {
+  if (!serverlessAppPromise) {
+    serverlessAppPromise = buildApp().then(async ({ app }) => {
+      await app.ready();
+      return app;
+    });
+  }
+
+  return serverlessAppPromise;
+}
+
+export default async function handler(request, response) {
+  const app = await getServerlessApp();
+  app.server.emit('request', request, response);
 }
 
 export function resolveDatabasePath() {
