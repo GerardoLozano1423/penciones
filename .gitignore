@@ -2,3 +2,6 @@ node_modules/*
 data/*
 .env
 npm-debug.log
+.codex
+.dockerignore
+.env.example
